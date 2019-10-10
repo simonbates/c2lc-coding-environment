@@ -137,10 +137,11 @@ export default class App extends React.Component<{}, AppState> {
     appendToProgram = (newAction: string) => {
         this.setState((state) => {
             return {
-                program: state.program.concat([newAction]),
+                program: [newAction],
                 programVer: state.programVer + 1
             }
         });
+        this.handleClickRun();
     }
 
     render() {
