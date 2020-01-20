@@ -8,6 +8,7 @@ import { createIntl, IntlProvider } from 'react-intl';
 import App from './App';
 import AriaDisablingButton from './AriaDisablingButton';
 import messages from './messages.json';
+import ConfirmDeleteAllModal from './ConfirmDeleteAllModal';
 import ProgramBlockEditor from './ProgramBlockEditor';
 
 configure({ adapter: new Adapter()});
@@ -28,6 +29,16 @@ function getProgramBlockAtPosition(programBlockEditorWrapper, index: number) {
 function getEditorActionButtons(programBlockEditorWrapper) {
     return programBlockEditorWrapper.find(AriaDisablingButton)
         .filter('.ProgramBlockEditor__editor-action-button');
+}
+
+function getRunButton(programBlockEditorWrapper) {
+    return programBlockEditorWrapper.find(AriaDisablingButton)
+        .filter('.ProgramBlockEditor__run-button');
+}
+
+function getDeleteAllButton(programBlockEditorWrapper) {
+    return programBlockEditorWrapper.find(Button)
+        .filter('.ProgramBlockEditor__delete-all-button');
 }
 
 test('onSelect property of ProgramBlockEditor component should change action buttons class and aria-pressed according to selectedAction property', () => {
@@ -160,10 +171,13 @@ test('blocks', () => {
         <ProgramBlockEditor
             activeProgramStepNum={null}
             editingDisabled={false}
+            interpreterIsRunning={false}
             minVisibleSteps={6}
             program={['forward', 'left', 'forward', 'left']}
             selectedAction={null}
             runButtonDisabled={false}
+            addModeDescriptionId={'someAddModeDescriptionId'}
+            deleteModeDescriptionId={'someDeleteModeDescriptionId'}
             onClickRunButton={()=>{}}
             onSelectAction={mockSelectHandler}
             onChange={mockChangeHandler} />,
@@ -257,6 +271,35 @@ test('blocks', () => {
     expect(mockSelectHandler.mock.calls.length).toBe(0);
 })
 
+test('The editor action buttons have aria-describedby set to provided ids', () => {
+    const wrapper = mount(
+        <ProgramBlockEditor
+            activeProgramStepNum={null}
+            editingDisabled={false}
+            interpreterIsRunning={false}
+            minVisibleSteps={6}
+            program={['forward', 'left', 'forward', 'left']}
+            selectedAction={null}
+            runButtonDisabled={false}
+            addModeDescriptionId={'someAddModeDescriptionId'}
+            deleteModeDescriptionId={'someDeleteModeDescriptionId'}
+            onClickRunButton={()=>{}}
+            onSelectAction={()=>{}}
+            onChange={()=>{}} />,
+        {
+            wrappingComponent: IntlProvider,
+            wrappingComponentProps: {
+                locale: 'en',
+                defaultLocale: 'en',
+                messages: messages.en
+            }
+        }
+    );
+
+    expect(getEditorActionButtons(wrapper).get(0).props['aria-describedby']).toBe('someAddModeDescriptionId');
+    expect(getEditorActionButtons(wrapper).get(1).props['aria-describedby']).toBe('someDeleteModeDescriptionId');
+});
+
 test('Whenever active program step number updates, auto scroll to the step', () => {
     const mockScrollInto = jest.fn();
 
@@ -266,10 +309,13 @@ test('Whenever active program step number updates, auto scroll to the step', () 
         <ProgramBlockEditor
             activeProgramStepNum={0}
             editingDisabled={true}
+            interpreterIsRunning={true}
             minVisibleSteps={6}
             program={['forward', 'left', 'forward', 'left']}
             selectedAction={null}
             runButtonDisabled={false}
+            addModeDescriptionId={'someAddModeDescriptionId'}
+            deleteModeDescriptionId={'someDeleteModeDescriptionId'}
             onClickRunButton={()=>{}}
             onSelectAction={()=>{}}
             onChange={()=>{}} />,
@@ -301,10 +347,13 @@ test('The editor action buttons disabled states are set according to the editing
         <ProgramBlockEditor
             activeProgramStepNum={null}
             editingDisabled={false}
+            interpreterIsRunning={false}
             minVisibleSteps={6}
             program={['forward', 'left', 'forward', 'left']}
             selectedAction={null}
             runButtonDisabled={false}
+            addModeDescriptionId={'someAddModeDescriptionId'}
+            deleteModeDescriptionId={'someDeleteModeDescriptionId'}
             onClickRunButton={mockRunHandler}
             onSelectAction={()=>{}}
             onChange={()=>{}} />,
@@ -326,4 +375,72 @@ test('The editor action buttons disabled states are set according to the editing
 
     expect(getEditorActionButtons(wrapper).get(0).props.disabled).toBe(true);
     expect(getEditorActionButtons(wrapper).get(1).props.disabled).toBe(true);
+});
+
+test('The run buttons color inverts by appending class name pressed when the program is running', () => {
+    const intl = createIntl({
+        locale: 'en',
+        defaultLocale: 'en',
+        messages: messages.en
+    });
+    const wrapper = shallow(
+        <ProgramBlockEditor.WrappedComponent
+            intl={intl}
+            activeProgramStepNum={0}
+            editingDisabled={true}
+            interpreterIsRunning={true}
+            minVisibleSteps={6}
+            program={['forward', 'left', 'forward', 'left']}
+            selectedAction={null}
+            runButtonDisabled={true}
+            onClickRunButton={()=>{}}
+            onSelectAction={()=>{}}
+            onChange={()=>{}} />
+    );
+
+    // When the interpreter is running, the run button has pressed and disabled
+    expect(getRunButton(wrapper).hasClass('ProgramBlockEditor__run-button--pressed')).toBe(true);
+    expect(getRunButton(wrapper).props().disabled).toBe(true);
+
+    wrapper.setProps({
+        activeProgramStepNum: null,
+        editingDisabled: false,
+        interpreterIsRunning: false,
+        runButtonDisabled: false });
+
+    // When the interpreter is not running, the run button doesn't have pressed and disabled
+    expect(getRunButton(wrapper).hasClass('ProgramBlockEditor__run-button--pressed')).toBe(false);
+    expect(getRunButton(wrapper).props().disabled).toBe(false);
+});
+
+test('Delete all button appears when delete action is toggled, which will open a confirmation modal onClick', () => {
+    const mockSelectHandler = jest.fn();
+    const intl = createIntl({
+        locale: 'en',
+        defaultLocale: 'en',
+        messages: messages.en
+    });
+
+    const wrapper = shallow(
+        <ProgramBlockEditor.WrappedComponent
+            intl={intl}
+            minVisibleSteps={6}
+            program={['forward', 'left', 'forward', 'left']}
+            selectedAction={null}
+            onSelectAction={mockSelectHandler} />
+    );
+
+    // initially, confirm modal for delete all is not visiable
+    expect(wrapper.state().showConfirmDeleteAll).toBe(false);
+
+    // toggle delete button
+    const deleteButton = getEditorActionButtons(wrapper).at(1);
+    deleteButton.simulate('click');
+    expect(mockSelectHandler.mock.calls.length).toBe(1);
+    expect(mockSelectHandler.mock.calls[0][0]).toStrictEqual({'action': 'delete', 'type': 'editorAction'});
+
+    // click deleteAll button and see if modal showes up
+    const deleteAllButton = getDeleteAllButton(wrapper).at(0);
+    deleteAllButton.simulate('click');
+    expect(wrapper.state().showConfirmDeleteAll).toBe(true);
 });

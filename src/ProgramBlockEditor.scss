@@ -73,6 +73,30 @@ button.btn.ProgramBlockEditor__editor-action-button--pressed.ProgramBlockEditor_
     display: block;
 }
 
+.ProgramBlockEditor__delete-all-button-container {
+    position: relative;
+}
+
+button.ProgramBlockEditor__delete-all-button {
+    z-index: 1;
+    color: #FFF;
+    background-color: #E2452B;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    max-width: 5em;
+    margin-right: 0.5rem;
+    padding: 0 0.5rem;
+    position: absolute;
+    right: 0;
+}
+
+button.ProgramBlockEditor__delete-all-button:hover {
+    color: #FFF;
+    background-color: #000;
+    margin-right: 0.5rem;
+    padding: 0 0.5rem;
+}
+
 .ProgramBlockEditor__program-sequence-scroll-container {
     border: 0.1rem solid #8F8F8F;
     background: #FFF;
@@ -121,10 +145,15 @@ button.btn.ProgramBlockEditor__run-button {
     padding: 0.6rem 0.45rem 0.6rem 0.75rem;
     border: 1px solid #FFF;
     border-radius: 50%;
+    background-color: #FFF;
 }
 
 button.btn.ProgramBlockEditor__run-button:not(:focus) {
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+}
+
+button.btn.ProgramBlockEditor__run-button svg {
+    fill: #000;
 }
 
 button.btn.ProgramBlockEditor__run-button--disabled {
@@ -132,13 +161,32 @@ button.btn.ProgramBlockEditor__run-button--disabled {
     cursor: default;
 }
 
+button.btn.ProgramBlockEditor__run-button--disabled svg {
+    fill: $c2lc-disabled-color;
+}
+
 button.btn.ProgramBlockEditor__run-button.ProgramBlockEditor__run-button--disabled:active:focus {
     background-color: $c2lc-primary-button-color;
     box-shadow: 0 0 0 $c2lc-focus-indicator-width $c2lc-focus-indicator-color;
 }
 
-button.btn.ProgramBlockEditor__run-button--disabled svg {
-    fill: $c2lc-disabled-color;
+button.btn.ProgramBlockEditor__run-button--pressed {
+    background-color: #000;
+}
+
+button.btn.ProgramBlockEditor__run-button.ProgramBlockEditor__run-button--pressed.ProgramBlockEditor__run-button--disabled,
+button.btn.ProgramBlockEditor__run-button.ProgramBlockEditor__run-button--pressed.ProgramBlockEditor__run-button--disabled:active:focus {
+    background-color: $c2lc-disabled-color;
+}
+
+button.btn.ProgramBlockEditor__run-button--pressed svg,
+button.btn.ProgramBlockEditor__run-button--pressed.ProgramBlockEditor__run-button--disabled svg {
+    fill: #FFF;
+}
+
+button.btn.ProgramBlockEditor__run-button.ProgramBlockEditor__run-button--disabled:active:focus {
+    background-color: $c2lc-primary-button-color;
+    box-shadow: 0 0 0 $c2lc-focus-indicator-width $c2lc-focus-indicator-color;
 }
 
 .ProgramBlockEditor__play-svg {

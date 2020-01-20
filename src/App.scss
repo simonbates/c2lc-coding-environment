@@ -35,3 +35,33 @@
 .App__command-palette-command {
     margin-top: 1rem;
 }
+
+.App__instructions-heading {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin: 2rem 0 1rem 0;
+}
+
+.App__instructions-section-heading {
+    font-size: 1rem;
+    font-weight: bold;
+    margin: 1rem 0 0.5rem 0;
+}
+
+.App__instructions-text {
+    max-width: 32em;
+}
+
+.App__add-mode-image svg {
+    width: 1em;
+    height: 1em;
+    stroke: #000;
+    vertical-align: -0.1em;
+}
+
+.App__delete-mode-image svg {
+    width: 1em;
+    height: 1em;
+    stroke: #000;
+    vertical-align: -0.2em;
+}

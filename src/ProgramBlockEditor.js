@@ -1,10 +1,11 @@
 // @flow
 
-import { Button, Col, Container, Row } from 'react-bootstrap';
+import { Button, Col, Collapse, Container, Row } from 'react-bootstrap';
 import { injectIntl, FormattedMessage } from 'react-intl';
 import * as ProgramUtils from './ProgramUtils';
 import type {Program, SelectedAction} from './types';
 import React from 'react';
+import ConfirmDeleteAllModal from './ConfirmDeleteAllModal';
 import AriaDisablingButton from './AriaDisablingButton';
 import { ReactComponent as ArrowTurnLeft } from './svg/ArrowTurnLeft.svg';
 import { ReactComponent as ArrowTurnRight } from './svg/ArrowTurnRight.svg';
@@ -14,20 +15,29 @@ import { ReactComponent as DeleteIcon } from './svg/Delete.svg';
 import { ReactComponent as PlayIcon } from './svg/Play.svg';
 import './ProgramBlockEditor.scss';
 
+// TODO: Send focus to Delete toggle button on close of Delete All confirmation dialog
+
 type ProgramBlockEditorProps = {
     intl: any,
     activeProgramStepNum: ?number,
     editingDisabled: boolean,
+    interpreterIsRunning: boolean,
     minVisibleSteps: number,
     program: Program,
     selectedAction: SelectedAction,
     runButtonDisabled: boolean,
+    addModeDescriptionId: string,
+    deleteModeDescriptionId: string,
     onClickRunButton: () => void,
     onSelectAction: (selectedAction: SelectedAction) => void,
     onChange: (Program) => void
 };
 
-class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
+type ProgramBlockEditorState = {
+    showConfirmDeleteAll: boolean
+};
+
+class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, ProgramBlockEditorState> {
     commandBlockRefs: Map<number, HTMLElement>;
     focusIndex: ?number;
 
@@ -35,6 +45,9 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
         super(props);
         this.commandBlockRefs = new Map();
         this.focusIndex = null;
+        this.state = {
+            showConfirmDeleteAll : false
+        }
     }
 
     toggleAction(action: 'add' | 'delete') {
@@ -71,6 +84,25 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
     handleClickDelete = () => {
         this.toggleAction('delete');
     };
+
+    handleClickDeleteAll = () => {
+        this.setState({
+            showConfirmDeleteAll : true
+        });
+    }
+
+    handleCancelDeleteAll = () => {
+        this.setState({
+            showConfirmDeleteAll : false
+        });
+    }
+
+    handleConfirmDeleteAll = () => {
+        this.props.onChange([]);
+        this.setState({
+            showConfirmDeleteAll : false
+        });
+    }
 
     handleClickStep = (e: SyntheticEvent<HTMLButtonElement>) => {
         const index = parseInt(e.currentTarget.dataset.stepnumber, 10);
@@ -222,6 +254,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
                     <div className='ProgramBlockEditor__editor-actions'>
                         <AriaDisablingButton
                             aria-label={this.props.intl.formatMessage({id:'ProgramBlockEditor.editorAction.add'})}
+                            aria-describedby={this.props.addModeDescriptionId}
                             className={this.addIsSelected() ?
                                         'ProgramBlockEditor__editor-action-button ProgramBlockEditor__editor-action-button--pressed' :
                                         'ProgramBlockEditor__editor-action-button'}
@@ -236,6 +269,7 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
 
                         <AriaDisablingButton
                             aria-label={this.props.intl.formatMessage({id:'ProgramBlockEditor.editorAction.delete'})}
+                            aria-describedby={this.props.deleteModeDescriptionId}
                             className={this.deleteIsSelected() ?
                                         'ProgramBlockEditor__editor-action-button ProgramBlockEditor__editor-action-button--pressed' :
                                         'ProgramBlockEditor__editor-action-button'}
@@ -248,6 +282,17 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
                             <DeleteIcon className='ProgramBlockEditor__editor-action-button-svg'/>
                         </AriaDisablingButton>
                     </div>
+                </Row>
+                <Row className='ProgramBlockEditor__delete-all-button-container'>
+                    <Collapse in={this.deleteIsSelected()}>
+                        <Button
+                            aria-label={this.props.intl.formatMessage({id:'ProgramBlockEditor.deleteAll'})}
+                            className='ProgramBlockEditor__delete-all-button'
+                            onClick={this.handleClickDeleteAll}
+                        >
+                            <FormattedMessage id='ProgramBlockEditor.deleteAll' />
+                        </Button>
+                    </Collapse>
                 </Row>
                 <Row>
                     <Col className='ProgramBlockEditor__program-sequence-scroll-container'>
@@ -263,7 +308,9 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
                     <Col>
                         <AriaDisablingButton
                             aria-label={`${this.props.intl.formatMessage({id:'PlayButton.run'})} ${this.props.program.join(' ')}`}
-                            className='ProgramBlockEditor__run-button'
+                            className={this.props.interpreterIsRunning ?
+                                'ProgramBlockEditor__run-button ProgramBlockEditor__run-button--pressed' :
+                                'ProgramBlockEditor__run-button'}
                             disabledClassName='ProgramBlockEditor__run-button--disabled'
                             disabled={this.props.runButtonDisabled}
                             onClick={this.props.onClickRunButton}
@@ -272,6 +319,10 @@ class ProgramBlockEditor extends React.Component<ProgramBlockEditorProps, {}> {
                         </AriaDisablingButton>
                     </Col>
                 </Row>
+                <ConfirmDeleteAllModal
+                    show={this.state.showConfirmDeleteAll}
+                    onCancel={this.handleCancelDeleteAll}
+                    onConfirm={this.handleConfirmDeleteAll}/>
             </Container>
         );
     }
