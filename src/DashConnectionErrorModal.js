@@ -23,13 +23,13 @@ class DashConnectionErrorModal extends React.Component<DashConnectionErrorModalP
                 dialogClassName='DashConnectionErrorModal'
                 centered>
                 <Modal.Body className='DashConnectionErrorModal__content'>
-                    <div tabIndex='-1' className='DashConnectionErrorModal__header'>
+                    <div className='DashConnectionErrorModal__header'>
                         <span role='img' aria-label={this.props.intl.formatMessage({id:'DashConnectionErrorModal.error'})} >
                             <ErrorIcon className='DashConnectionErrorModal__error-svg' />
                         </span>
                         <FormattedMessage id='DashConnectionErrorModal.title' />
                     </div>
-                    <div tabIndex='-1' className='DashConnectionErrorModal__body'>
+                    <div className='DashConnectionErrorModal__body'>
                         <ul>
                             <li>
                                 <FormattedMessage id='DashConnectionErrorModal.firstMessage' />

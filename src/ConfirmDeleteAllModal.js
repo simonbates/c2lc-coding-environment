@@ -23,7 +23,7 @@ class ConfrimDeleteAllModal extends React.Component<ConfrimDeleteAllModalProps, 
                 dialogClassName='ConfrimDeleteAllModal'
                 centered>
                 <Modal.Body className='ConfrimDeleteAllModal__content'>
-                    <div tabIndex='-1' className='ConfrimDeleteAllModal__header'>
+                    <div className='ConfrimDeleteAllModal__header'>
                         <span role='img' aria-label={this.props.intl.formatMessage({id:'ConfrimDeleteAllModal.warning'})} >
                             <ErrorIcon className='ConfrimDeleteAllModal__warning-svg' />
                         </span>
