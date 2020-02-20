@@ -16,7 +16,8 @@
         "react-mic": "12.4.1",
         "react-scripts": "3.3.0",
         "soundex": "0.2.1",
-        "typeface-roboto": "0.0.75"
+        "typeface-roboto": "0.0.75",
+        "@wonderworkshop/wwjs": "0.1.1"
     },
     "devDependencies": {
         "flow-bin": "0.116.1"

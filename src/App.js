@@ -6,7 +6,7 @@ import { Col, Container, Row } from 'react-bootstrap';
 import BluetoothApiWarning from './BluetoothApiWarning';
 import CommandPaletteCommand from './CommandPaletteCommand';
 import DashConnectionErrorModal from './DashConnectionErrorModal';
-import DashDriver from './DashDriver';
+import WonderDriver from './WonderDriver';
 import DeviceConnectControl from './DeviceConnectControl';
 import * as FeatureDetection from './FeatureDetection';
 import Interpreter from './Interpreter';
@@ -81,7 +81,7 @@ export default class App extends React.Component<{}, AppState> {
         );
 
         // For FakeRobotDriver, replace with: this.dashDriver = new FakeRobotDriver();
-        this.dashDriver = new DashDriver();
+        this.dashDriver = new WonderDriver();
 
         this.addModeDescriptionId = Utils.generateId('addModeDescription');
         this.deleteModeDescriptionId = Utils.generateId('deleteModeDescription');
