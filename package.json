@@ -20,11 +20,13 @@
         "@wonderworkshop/wwjs": "0.1.1"
     },
     "devDependencies": {
-        "flow-bin": "0.116.1"
+        "flow-bin": "0.116.1",
+        "grunt": "1.0.4",
+        "grunt-contrib-copy": "1.0.0"
     },
     "scripts": {
-        "start": "react-scripts start",
-        "build": "react-scripts build",
+        "start": "grunt copy:wwjsHALasm && react-scripts start",
+        "build": "grunt copy:wwjsHALasm && react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
     },
