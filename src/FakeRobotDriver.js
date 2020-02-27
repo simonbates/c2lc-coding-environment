@@ -1,10 +1,10 @@
 // @flow
 
-import type { RobotDriver } from './types';
+import type { RobotDriver, RobotConnection } from './types';
 
-export default class FakeRobotDriver implements RobotDriver {
-    connect(onDisconnected: () => void): Promise<void> {
-        return Promise.resolve();
+class FakeRobotConnection implements RobotConnection {
+    onDisconnected(callback: () => void) {
+        // Do nothing
     }
 
     fakeCommandImpl(): Promise<void> {
@@ -28,5 +28,23 @@ export default class FakeRobotDriver implements RobotDriver {
     right(): Promise<void> {
         console.log("FakeRobot: Right");
         return this.fakeCommandImpl();
+    }
+}
+
+export default class FakeRobotDriver implements RobotDriver {
+    onConnectedCallback: ((RobotConnection) => void) | null;
+
+    constructor() {
+        this.onConnectedCallback = null;
+    }
+
+    onConnected(callback: (RobotConnection) => void) {
+        this.onConnectedCallback = callback;
+    }
+
+    connect() {
+        if (this.onConnectedCallback) {
+            this.onConnectedCallback(new FakeRobotConnection());
+        }
     }
 }

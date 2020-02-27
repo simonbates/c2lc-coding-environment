@@ -5,7 +5,6 @@ import { IntlProvider, FormattedMessage } from 'react-intl';
 import { Col, Container, Row } from 'react-bootstrap';
 import BluetoothApiWarning from './BluetoothApiWarning';
 import CommandPaletteCommand from './CommandPaletteCommand';
-import DashConnectionErrorModal from './DashConnectionErrorModal';
 import WonderDriver from './WonderDriver';
 import DeviceConnectControl from './DeviceConnectControl';
 import * as FeatureDetection from './FeatureDetection';
@@ -14,7 +13,7 @@ import type { InterpreterRunningState } from './Interpreter';
 import ProgramBlockEditor from './ProgramBlockEditor';
 import { programIsEmpty } from './ProgramUtils';
 import * as Utils from './Utils';
-import type { DeviceConnectionStatus, Program, RobotDriver, SelectedAction } from './types';
+import type { DeviceConnectionStatus, Program, RobotDriver, RobotConnection, SelectedAction } from './types';
 import messages from './messages.json';
 import './App.scss';
 import { ReactComponent as ArrowForward } from './svg/ArrowForward.svg';
@@ -40,13 +39,13 @@ type AppState = {
     dashConnectionStatus: DeviceConnectionStatus,
     activeProgramStepNum: ?number,
     interpreterIsRunning: boolean,
-    showDashConnectionError: boolean,
     selectedAction: SelectedAction
 };
 
 export default class App extends React.Component<{}, AppState> {
     appContext: AppContext;
     dashDriver: RobotDriver;
+    dashConnection: ?RobotConnection;
     interpreter: Interpreter;
     addModeDescriptionId: string;
     deleteModeDescriptionId: string;
@@ -66,11 +65,46 @@ export default class App extends React.Component<{}, AppState> {
             dashConnectionStatus: 'notConnected',
             activeProgramStepNum: null,
             interpreterIsRunning: false,
-            showDashConnectionError: false,
             selectedAction: null
         };
 
         this.interpreter = new Interpreter(this.handleRunningStateChange);
+
+        this.interpreter.addCommandHandler(
+            'forward',
+            'dash',
+            () => {
+                if (this.state.dashConnectionStatus === 'connected' && this.dashConnection) {
+                    return this.dashConnection.forward();
+                } else {
+                    return Promise.resolve();
+                }
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'left',
+            'dash',
+            () => {
+                if (this.state.dashConnectionStatus === 'connected' && this.dashConnection) {
+                    return this.dashConnection.left();
+                } else {
+                    return Promise.resolve();
+                }
+            }
+        );
+
+        this.interpreter.addCommandHandler(
+            'right',
+            'dash',
+            () => {
+                if (this.state.dashConnectionStatus === 'connected' && this.dashConnection) {
+                    return this.dashConnection.right();
+                } else {
+                    return Promise.resolve();
+                }
+            }
+        );
 
         this.interpreter.addCommandHandler(
             'none',
@@ -82,6 +116,8 @@ export default class App extends React.Component<{}, AppState> {
 
         // For FakeRobotDriver, replace with: this.dashDriver = new FakeRobotDriver();
         this.dashDriver = new WonderDriver();
+        this.dashConnection = null;
+        this.dashDriver.onConnected(this.handleDashConnected);
 
         this.addModeDescriptionId = Utils.generateId('addModeDescription');
         this.deleteModeDescriptionId = Utils.generateId('deleteModeDescription');
@@ -120,33 +156,20 @@ export default class App extends React.Component<{}, AppState> {
         );
     };
 
+
     handleClickConnectDash = () => {
+        this.dashDriver.connect();
+    };
+
+    handleDashConnected = (connection: RobotConnection) => {
+        connection.onDisconnected(this.handleDashDisconnected);
+        this.dashConnection = connection;
         this.setState({
-            dashConnectionStatus: 'connecting',
-            showDashConnectionError: false
-        });
-        this.dashDriver.connect(this.handleDashDisconnect).then(() => {
-            this.setState({
-                dashConnectionStatus: 'connected'
-            });
-        }, (error) => {
-            console.log('ERROR');
-            console.log(error.name);
-            console.log(error.message);
-            this.setState({
-                dashConnectionStatus: 'notConnected',
-                showDashConnectionError: true
-            });
+            dashConnectionStatus: 'connected'
         });
     };
 
-    handleCancelDashConnection = () => {
-        this.setState({
-            showDashConnectionError: false
-        });
-    };
-
-    handleDashDisconnect = () => {
+    handleDashDisconnected = () => {
         this.setState({
             dashConnectionStatus : 'notConnected'
         });
@@ -294,28 +317,13 @@ export default class App extends React.Component<{}, AppState> {
                         </Col>
                     </Row>
                 </Container>
-                <DashConnectionErrorModal
-                    show={this.state.showDashConnectionError}
-                    onCancel={this.handleCancelDashConnection}
-                    onRetry={this.handleClickConnectDash}/>
             </IntlProvider>
         );
     }
 
     componentDidUpdate(prevProps: {}, prevState: AppState) {
         if (this.state.dashConnectionStatus !== prevState.dashConnectionStatus) {
-            console.log(this.state.dashConnectionStatus);
-
-            if (this.state.dashConnectionStatus === 'connected') {
-                this.interpreter.addCommandHandler('forward', 'dash',
-                    this.dashDriver.forward.bind(this.dashDriver));
-                this.interpreter.addCommandHandler('left', 'dash',
-                    this.dashDriver.left.bind(this.dashDriver));
-                this.interpreter.addCommandHandler('right', 'dash',
-                    this.dashDriver.right.bind(this.dashDriver));
-            } else if (this.state.dashConnectionStatus === 'notConnected') {
-                // TODO: Remove Dash handlers
-
+            if (this.state.dashConnectionStatus === 'notConnected') {
                 if (this.state.interpreterIsRunning) {
                     this.interpreter.stop();
                 }

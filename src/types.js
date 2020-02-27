@@ -7,7 +7,12 @@ export type EditorMode = 'text' | 'block';
 export type Program = Array<string>;
 
 export interface RobotDriver {
-    connect(onDisconnected: () => void): Promise<void>;
+    onConnected(callback: (RobotConnection) => void): void;
+    connect(): void;
+};
+
+export interface RobotConnection {
+    onDisconnected(callback: () => void): void;
     forward(): Promise<void>;
     left(): Promise<void>;
     right(): Promise<void>;

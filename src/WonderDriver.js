@@ -1,42 +1,34 @@
 // @flow
 
-import type { RobotDriver } from './types';
+import type { RobotDriver, RobotConnection } from './types';
 import WonderJS from '@wonderworkshop/wwjs';
 
-// TODO: Does WonderJS support connecting to multiple robots at once?
-// TODO: The RobotDriver interface supports at most one robot connection at a
-//       time per driver. Separate into RobotDriver and RobotConnection
-//       interfaces? RobotDriver.connect() returns RobotConnection instance.
-
-export default class WonderDriver implements RobotDriver {
+class WonderConnection implements RobotConnection {
     robot: any;
+    isConnected: boolean;
+    onDisconnectedCallback: (() => void) | null;
     poseStarted: boolean;
-    onConnect: (() => void) | null;
-    onDisconnected: (() => void) | null;
     onPoseFinished: (() => void) | null;
 
-    constructor() {
-        this.robot = null;
+    constructor(robot: any) {
+        this.robot = robot;
+        this.isConnected = true;
+        this.onDisconnectedCallback = null;
         this.poseStarted = false;
-        this.onConnect = null;
-        this.onDisconnected = null;
         this.onPoseFinished = null;
-
-        WonderJS.addEventListener('onconnect', this.handleConnect);
-        WonderJS.addEventListener('ondisconnect', this.handleDisconnect);
-        WonderJS.addEventListener('onsensor', this.handleSensor);
     }
 
-    handleConnect = (robot: any) => {
-        this.robot = robot;
-        if (this.onConnect) {
-            this.onConnect();
+    onDisconnected(callback: () => void) {
+        this.onDisconnectedCallback = callback;
+        if (!this.isConnected) {
+            callback();
         }
-    };
+    }
 
-    handleDisconnect = (robotId: any) => {
-        if (this.onDisconnected) {
-            this.onDisconnected();
+    handleDisconnect = () => {
+        this.isConnected = false;
+        if (this.onDisconnectedCallback) {
+            this.onDisconnectedCallback();
         }
     };
 
@@ -52,16 +44,6 @@ export default class WonderDriver implements RobotDriver {
             }
         }
     };
-
-    connect(onDisconnected: () => void): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this.onConnect = () => {
-                resolve();
-            };
-            this.onDisconnected = onDisconnected;
-            WonderJS.connect();
-        });
-    }
 
     forward(): Promise<void> {
         return new Promise((resolve, reject) => {
@@ -88,5 +70,55 @@ export default class WonderDriver implements RobotDriver {
             };
             this.robot.command.pose(0, 0, -90, 1);
         });
+    }
+}
+
+export default class WonderDriver implements RobotDriver {
+    connections: Map<any, WonderConnection>;
+    onConnectedCallback: ((RobotConnection) => void) | null;
+
+    constructor() {
+        this.connections = new Map();
+        this.onConnectedCallback = null;
+
+        WonderJS.addEventListener('onconnect', this.handleConnect);
+        WonderJS.addEventListener('ondisconnect', this.handleDisconnect);
+        WonderJS.addEventListener('onsensor', this.handleSensor);
+    }
+
+    handleConnect = (robot: any) => {
+        if (this.onConnectedCallback) {
+            const connection = new WonderConnection(robot);
+            this.connections.set(robot.id, connection);
+            if (this.onConnectedCallback) {
+                this.onConnectedCallback(connection);
+            }
+        }
+    };
+
+    handleDisconnect = (robotId: any) => {
+        // Dispatch to the appropriate connection
+        const connection = this.connections.get(robotId);
+        if (connection) {
+            connection.handleDisconnect();
+            // Remove the connection from the connections collection
+            this.connections.delete(robotId);
+        }
+    };
+
+    handleSensor = (msg: any) => {
+        // Dispatch the sensor message to the appropriate connection
+        const connection = this.connections.get(msg.id);
+        if (connection) {
+            connection.handleSensor(msg);
+        }
+    };
+
+    onConnected(callback: (RobotConnection) => void) {
+        this.onConnectedCallback = callback;
+    }
+
+    connect() {
+        WonderJS.connect();
     }
 }
