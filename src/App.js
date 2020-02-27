@@ -156,7 +156,6 @@ export default class App extends React.Component<{}, AppState> {
         );
     };
 
-
     handleClickConnectDash = () => {
         this.dashDriver.connect();
     };
