@@ -12,6 +12,8 @@ import './Scene.scss';
 export type SceneProps = {
     dimensions: SceneDimensions,
     characterState: CharacterState,
+    mirrorHorizontally: boolean,
+    mirrorVertically: boolean,
     intl: IntlShape
 };
 
@@ -76,15 +78,53 @@ class Scene extends React.Component<SceneProps, {}> {
     }
 
     drawCharacterPath() {
-        return this.props.characterState.path.map((pathSegment, i) => {
-            return <line
-                className='Scene__path-line'
-                key={`path-${i}`}
-                x1={pathSegment.x1}
-                y1={pathSegment.y1}
-                x2={pathSegment.x2}
-                y2={pathSegment.y2} />
-        });
+        const lines = [];
+        for (let i = 0; i < this.props.characterState.path.length; ++i) {
+            const pathSegment = this.props.characterState.path[i];
+            lines.push(
+                <line
+                    className='Scene__path-line'
+                    key={`path-${i}`}
+                    x1={pathSegment.x1}
+                    y1={pathSegment.y1}
+                    x2={pathSegment.x2}
+                    y2={pathSegment.y2} />
+            );
+            if (this.props.mirrorHorizontally) {
+                lines.push(
+                    <line
+                        className='Scene__path-line'
+                        key={`path-mirror-h-${i}`}
+                        x1={pathSegment.x1 * -1}
+                        y1={pathSegment.y1}
+                        x2={pathSegment.x2 * -1}
+                        y2={pathSegment.y2} />
+                );
+            }
+            if (this.props.mirrorVertically) {
+                lines.push(
+                    <line
+                        className='Scene__path-line'
+                        key={`path-mirror-v-${i}`}
+                        x1={pathSegment.x1}
+                        y1={pathSegment.y1 * -1}
+                        x2={pathSegment.x2}
+                        y2={pathSegment.y2 * -1} />
+                );
+            }
+            if (this.props.mirrorHorizontally && this.props.mirrorVertically) {
+                lines.push(
+                    <line
+                        className='Scene__path-line'
+                        key={`path-mirror-hv-${i}`}
+                        x1={pathSegment.x1 * -1}
+                        y1={pathSegment.y1 * -1}
+                        x2={pathSegment.x2 * -1}
+                        y2={pathSegment.y2 * -1} />
+                );
+            }
+        }
+        return lines;
     }
 
     getDirectionWords(direction: number): string {

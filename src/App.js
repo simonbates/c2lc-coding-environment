@@ -60,7 +60,9 @@ type AppState = {
     audioEnabled: boolean,
     actionPanelStepIndex: ?number,
     sceneDimensions: SceneDimensions,
-    drawingEnabled: boolean
+    drawingEnabled: boolean,
+    mirrorDrawingHorizontally: boolean,
+    mirrorDrawingVertically: boolean
 };
 
 export default class App extends React.Component<{}, AppState> {
@@ -100,7 +102,9 @@ export default class App extends React.Component<{}, AppState> {
             audioEnabled: true,
             actionPanelStepIndex: null,
             sceneDimensions: new SceneDimensions(17, 9),
-            drawingEnabled: true
+            drawingEnabled: true,
+            mirrorDrawingHorizontally: true,
+            mirrorDrawingVertically: true
         };
 
         this.interpreter = new Interpreter(this.handleRunningStateChange, 1000);
@@ -533,6 +537,8 @@ export default class App extends React.Component<{}, AppState> {
                             <Scene
                                 dimensions={this.state.sceneDimensions}
                                 characterState={this.state.characterState}
+                                mirrorHorizontally={this.state.mirrorDrawingHorizontally}
+                                mirrorVertically={this.state.mirrorDrawingVertically}
                             />
                             <div className='App__scene-controls'>
                                 <div className='App__scene-controls-group'>

@@ -14,7 +14,9 @@ configure({ adapter: new Adapter() });
 
 const defaultSceneProps = {
     dimensions: new SceneDimensions(1, 1),
-    characterState: new CharacterState(0, 0, 2, [])
+    characterState: new CharacterState(0, 0, 2, []),
+    mirrorHorizontally: false,
+    mirrorVertically: false
 };
 
 function createMountScene(props) {
