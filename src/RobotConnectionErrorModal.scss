@@ -1,33 +1,33 @@
 @import 'variables';
 
-.DashConnectionErrorModal {
+.RobotConnectionErrorModal {
     width: 35rem;
 }
 
-.DashConnectionErrorModal__content {
+.RobotConnectionErrorModal__content {
     padding: 3rem 4rem;
 }
 
-.DashConnectionErrorModal__header {
+.RobotConnectionErrorModal__header {
     font-weight: bold;
 }
 
-.DashConnectionErrorModal__error-svg {
+.RobotConnectionErrorModal__error-svg {
     width: 2rem;
     height: 2rem;
     margin-right: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.DashConnectionErrorModal__body {
+.RobotConnectionErrorModal__body {
     margin-top: 1rem;
 }
 
-.DashConnectionErrorModal__footer {
+.RobotConnectionErrorModal__footer {
     margin-top: 3rem;
     text-align: center;
 }
 
-.DashConnectionErrorModal__option-button {
+.RobotConnectionErrorModal__option-button {
     min-width: 11rem;
 }

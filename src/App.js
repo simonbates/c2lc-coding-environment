@@ -9,8 +9,8 @@ import CharacterState from './CharacterState';
 import CharacterStateSerializer from './CharacterStateSerializer';
 import CommandPaletteCommand from './CommandPaletteCommand';
 import C2lcURLParams from './C2lcURLParams';
-import DashConnectionErrorModal from './DashConnectionErrorModal';
-import DashDriver from './DashDriver';
+import RobotConnectionErrorModal from './RobotConnectionErrorModal';
+import ArduinoDriver from './ArduinoDriver';
 import * as FeatureDetection from './FeatureDetection';
 import FakeAudioManager from './FakeAudioManager';
 import FocusTrapManager from './FocusTrapManager';
@@ -33,9 +33,9 @@ import * as Utils from './Utils';
 import './App.scss';
 import './Themes.css';
 import './vendor/dragdroptouch/DragDropTouch.js';
+import DeviceConnectControl from './DeviceConnectControl';
 /* Dash connection removed for version 0.5
 import BluetoothApiWarning from './BluetoothApiWarning';
-import DeviceConnectControl from './DeviceConnectControl';
 */
 
 // Uncomment to use the FakeRobotDriver (see driver construction below also)
@@ -61,8 +61,8 @@ type AppState = {
     programSequence: ProgramSequence,
     characterState: CharacterState,
     settings: AppSettings,
-    dashConnectionStatus: DeviceConnectionStatus,
-    showDashConnectionError: boolean,
+    arduinoConnectionStatus: DeviceConnectionStatus,
+    showRobotConnectionError: boolean,
     selectedAction: ?string,
     isDraggingCommand: boolean,
     audioEnabled: boolean,
@@ -75,7 +75,7 @@ type AppState = {
 export class App extends React.Component<AppProps, AppState> {
     version: string;
     appContext: AppContext;
-    dashDriver: RobotDriver;
+    arduinoDriver: RobotDriver;
     interpreter: Interpreter;
     audioManager: AudioManager;
     focusTrapManager: FocusTrapManager;
@@ -104,8 +104,8 @@ export class App extends React.Component<AppProps, AppState> {
                 addNodeExpandedMode: true,
                 theme: 'default'
             },
-            dashConnectionStatus: 'notConnected',
-            showDashConnectionError: false,
+            arduinoConnectionStatus: 'notConnected',
+            showRobotConnectionError: false,
             selectedAction: null,
             isDraggingCommand: false,
             audioEnabled: true,
@@ -315,8 +315,8 @@ export class App extends React.Component<AppProps, AppState> {
         );
 
         // For FakeRobotDriver, replace with:
-        // this.dashDriver = new FakeRobotDriver();
-        this.dashDriver = new DashDriver();
+        // this.arduinoDriver = new FakeRobotDriver();
+        this.arduinoDriver = new ArduinoDriver();
 
         if (props.audioManager) {
             this.audioManager = props.audioManager
@@ -410,35 +410,35 @@ export class App extends React.Component<AppProps, AppState> {
         this.setRunningState('stopRequested');
     }
 
-    handleClickConnectDash = () => {
+    handleClickConnectArduino = () => {
         this.setState({
-            dashConnectionStatus: 'connecting',
-            showDashConnectionError: false
+            arduinoConnectionStatus: 'connecting',
+            showRobotConnectionError: false
         });
-        this.dashDriver.connect(this.handleDashDisconnect).then(() => {
+        this.arduinoDriver.connect(this.handleArduinoDisconnect).then(() => {
             this.setState({
-                dashConnectionStatus: 'connected'
+                arduinoConnectionStatus: 'connected'
             });
         }, (error: Error) => {
             console.log('ERROR');
             console.log(error.name);
             console.log(error.message);
             this.setState({
-                dashConnectionStatus: 'notConnected',
-                showDashConnectionError: true
+                arduinoConnectionStatus: 'notConnected',
+                showRobotConnectionError: true
             });
         });
     };
 
-    handleCancelDashConnection = () => {
+    handleCancelArduinoConnection = () => {
         this.setState({
-            showDashConnectionError: false
+            showRobotConnectionError: false
         });
     };
 
-    handleDashDisconnect = () => {
+    handleArduinoDisconnect = () => {
         this.setState({
-            dashConnectionStatus : 'notConnected'
+            arduinoConnectionStatus : 'notConnected'
         });
     };
 
@@ -568,16 +568,14 @@ export class App extends React.Component<AppProps, AppState> {
                                             value={this.state.audioEnabled}
                                             onChange={this.handleToggleAudioFeedback} />
                                     </div>
-                                    {/* Dash connection removed for version 0.5
                                     <DeviceConnectControl
                                         disabled={
                                             !this.appContext.bluetoothApiIsAvailable ||
-                                            this.state.dashConnectionStatus === 'connected' }
-                                        connectionStatus={this.state.dashConnectionStatus}
-                                        onClickConnect={this.handleClickConnectDash}>
-                                        <FormattedMessage id='App.connectToDash' />
+                                            this.state.arduinoConnectionStatus === 'connected' }
+                                        connectionStatus={this.state.arduinoConnectionStatus}
+                                        onClickConnect={this.handleClickConnectArduino}>
+                                        <FormattedMessage id='App.connectToArduino' />
                                     </DeviceConnectControl>
-                                    */}
                                     <ThemeSelector onSelect={this.handleChangeTheme} />
                                 </div>
                             </Row>
@@ -676,10 +674,10 @@ export class App extends React.Component<AppProps, AppState> {
                         </div>
                     </Container>
                 </div>
-                <DashConnectionErrorModal
-                    show={this.state.showDashConnectionError}
-                    onCancel={this.handleCancelDashConnection}
-                    onRetry={this.handleClickConnectDash}/>
+                <RobotConnectionErrorModal
+                    show={this.state.showRobotConnectionError}
+                    onCancel={this.handleCancelArduinoConnection}
+                    onRetry={this.handleClickConnectArduino}/>
             </React.Fragment>
         );
     }
@@ -782,26 +780,18 @@ export class App extends React.Component<AppProps, AppState> {
             }
         }
 
-        /* Dash connection removed for version 0.5
-        if (this.state.dashConnectionStatus !== prevState.dashConnectionStatus) {
-            console.log(this.state.dashConnectionStatus);
+        if (this.state.arduinoConnectionStatus !== prevState.arduinoConnectionStatus) {
+            console.log(this.state.arduinoConnectionStatus);
 
-            if (this.state.dashConnectionStatus === 'connected') {
-                this.interpreter.addCommandHandler('forward', 'dash',
-                    this.dashDriver.forward.bind(this.dashDriver));
-                this.interpreter.addCommandHandler('left', 'dash',
-                    this.dashDriver.left.bind(this.dashDriver));
-                this.interpreter.addCommandHandler('right', 'dash',
-                    this.dashDriver.right.bind(this.dashDriver));
-            } else if (this.state.dashConnectionStatus === 'notConnected') {
-                // TODO: Remove Dash handlers
-
-                if (this.state.runningState === 'running) {
-                    this.interpreter.stop();
-                }
+            if (this.state.arduinoConnectionStatus === 'connected') {
+                this.interpreter.addCommandHandler('forward1', 'arduino',
+                    this.arduinoDriver.forward.bind(this.arduinoDriver));
+                this.interpreter.addCommandHandler('left45', 'arduino',
+                    this.arduinoDriver.left.bind(this.arduinoDriver));
+                this.interpreter.addCommandHandler('right45', 'arduino',
+                    this.arduinoDriver.right.bind(this.arduinoDriver));
             }
         }
-        */
     }
 }
 
