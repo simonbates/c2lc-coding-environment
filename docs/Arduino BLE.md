@@ -26,7 +26,7 @@ This repository does not contain any Arduino code, but rather connects to an Ard
 - Connect the Arduino using USB
 - Set the board type in the Tools menu (for example "Arduino Uno WiFi Rev2")
 - Selected the port in the Tools menu
-- Ensure that the serial console is closed
+- Ensure that the serial monitor is closed
 - Tools / "Wifi101 / WifiNINA Firmware Updater"
   - Select the appropriate serial port
   - Select the latest NINA firmware version (latest version for the Arduino UNO WiFi Rev 2 is 1.3.0 at time of writing)
@@ -54,9 +54,9 @@ If everything has worked, you should see the following message in the serial mon
 
 You should now be able to run the C2LC Coding environment with `npm start` and connect to the Arduino over BLE.
 
-## The code that implements the BLE connection
+## The code that makes the BLE connection
 
-- [ArduinoDriver.js](../src/ArduinoDriver.js) contains the details of the BLE connection to the Arduino
+- [ArduinoDriver.js](../src/ArduinoDriver.js) implements the BLE connection to the Arduino
 - [App.js](../src/App.js) provides the UI to establish the connection
   - Upon successful connection, the `App` registers command handlers with the interpreter to send the LED on and off messages: https://github.com/codelearncreate/c2lc-coding-environment/blob/300e134ed90f5e707dc49491df46ccb6684f0faf/src/App.js#L783-L793
 
