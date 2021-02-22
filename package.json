@@ -53,6 +53,7 @@
             "!src/**/*.test.js",
             "!src/AddModeImage.js",
             "!src/App.js",
+            "!src/ArduinoDriver.js",
             "!src/AudioManagerImpl.js",
             "!src/DashDriver.js",
             "!src/DeleteModeImage.js",
